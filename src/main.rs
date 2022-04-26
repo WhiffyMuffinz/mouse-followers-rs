@@ -4,12 +4,12 @@ use raylib::prelude::*;
 mod agent;
 use crate::agent::Agent;
 
-const SCREEN_WIDTH: i32 = 800;
-const SCREEN_HEIGHT: i32 = 450;
-const AGENT_COUNT: i32 = 10;
+const SCREEN_WIDTH: i32 = 1920;
+const SCREEN_HEIGHT: i32 = 1080;
+const AGENT_COUNT: i32 = 1;
 const MAX_SPEED: f32 = 50.0;
 const MAX_TURN_RATE: f32 = 0.1;
-const AGENT_SIZE: f32 = 10.0;
+const AGENT_SIZE: f32 = 50.0;
 
 fn create_agents() -> Vec<Agent> {
     let mut out: Vec<Agent> = vec![];
@@ -44,13 +44,26 @@ fn create_agents() -> Vec<Agent> {
     out
 }
 
+fn create_fixed_agent() -> Vec<Agent> {
+    let a: Agent = Agent {
+        max_speed: 0.0,
+        max_turn_rate: MAX_TURN_RATE,
+        position: Vector2::new(SCREEN_WIDTH as f32 / 2.0, SCREEN_HEIGHT as f32 / 2.0),
+        walls: [SCREEN_WIDTH, SCREEN_HEIGHT],
+        velocity: Vector2::new(1.0, 0.0),
+        size: AGENT_SIZE,
+        colour: Color::GREEN,
+    };
+
+    vec![a]
+}
 fn main() {
     let (mut rl, thread) = raylib::init()
         .size(SCREEN_WIDTH, SCREEN_HEIGHT)
         .title("mouse followers for bakas")
         .build();
 
-    let mut agents = create_agents();
+    let mut agents = create_fixed_agent();
 
     while !rl.window_should_close() {
         let dt = rl.get_frame_time();
