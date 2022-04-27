@@ -6,10 +6,12 @@ use crate::agent::Agent;
 
 const SCREEN_WIDTH: i32 = 1920;
 const SCREEN_HEIGHT: i32 = 1080;
-const AGENT_COUNT: i32 = 1;
-const MAX_SPEED: f32 = 50.0;
-const MAX_TURN_RATE: f32 = 0.1;
+const AGENT_COUNT: i32 = 10;
+const MAX_SPEED: f32 = 100.0;
+const MAX_TURN_RATE: f32 = 1e-4;
 const AGENT_SIZE: f32 = 50.0;
+const DEBUG_VECTORS: bool = true;
+const DEBUG_POINTS: bool = false;
 
 fn create_agents() -> Vec<Agent> {
     let mut out: Vec<Agent> = vec![];
@@ -46,13 +48,13 @@ fn create_agents() -> Vec<Agent> {
 
 fn create_fixed_agent() -> Vec<Agent> {
     let a: Agent = Agent {
-        max_speed: 0.0,
+        max_speed: 100.0,
         max_turn_rate: MAX_TURN_RATE,
         position: Vector2::new(SCREEN_WIDTH as f32 / 2.0, SCREEN_HEIGHT as f32 / 2.0),
         walls: [SCREEN_WIDTH, SCREEN_HEIGHT],
-        velocity: Vector2::new(1.0, 0.0),
+        velocity: Vector2::new(1.0, 1.0),
         size: AGENT_SIZE,
-        colour: Color::GREEN,
+        colour: Color::BLUE,
     };
 
     vec![a]
@@ -63,21 +65,25 @@ fn main() {
         .title("mouse followers for bakas")
         .build();
 
-    let mut agents = create_fixed_agent();
+    // let mut agents = create_fixed_agent();
+    let mut agents = create_agents();
 
     while !rl.window_should_close() {
         let dt = rl.get_frame_time();
         //update loop goes here
+        let pointer_pressed = rl.is_mouse_button_down(MouseButton::MOUSE_LEFT_BUTTON);
+        let pointer_position = rl.get_mouse_position();
         for a in &mut agents {
-            a.update(dt, false, Vector2::new(0.0, 0.0));
+            a.update(dt, pointer_pressed, pointer_position);
         }
 
         let mut d = rl.begin_drawing(&thread);
         d.clear_background(Color::BLACK);
+        d.draw_fps(10, 10);
         //render loop goes here
 
         for a in &mut agents {
-            a.render(&mut d, false, Vector2::new(0.0, 0.0));
+            a.render(&mut d, DEBUG_POINTS, DEBUG_VECTORS, pointer_position);
         }
     }
 }

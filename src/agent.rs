@@ -1,6 +1,3 @@
-use libm;
-use libm::atan;
-use raylib::consts::PI;
 use raylib::core::math::Vector2;
 
 use raylib::prelude::*;
@@ -18,7 +15,7 @@ pub struct Agent {
 impl Agent {
     pub fn update(&mut self, dt: f32, is_pointer_pressed: bool, pointer_position: Vector2) {
         if is_pointer_pressed {
-            self.add_forces(pointer_position);
+            self.point_to_pointer(pointer_position);
         }
         self.handle_walls();
         self.walk(dt);
@@ -26,7 +23,6 @@ impl Agent {
     fn walk(&mut self, dt: f32) {
         self.position += self.velocity * dt * self.max_speed;
     }
-    fn add_forces(&mut self, pointer_position: Vector2) {}
     fn handle_walls(&mut self) {
         if self.position.x <= 0.0 {
             self.position.x = 0.0;
@@ -49,43 +45,90 @@ impl Agent {
     fn get_triangle_points(&self) -> [Vector2; 3] {
         //returns an array of three vectors representing the points of a triangle
         //takes into acount the direction the velocity vector is heading, and points the triangle in that direction
-        let angle = atan(self.velocity.y as f64 / self.velocity.x as f64);
-        let angle_rad = angle * PI / 180.0;
-        let angle_cos = angle_rad.cos() as f32;
-        let angle_sin = angle_rad.clone().sin() as f32;
+        let mut angle = (self.velocity.y / self.velocity.x).atan();
+        if self.velocity.x < 0.0 {
+            angle += std::f32::consts::PI;
+        }
+
         let point_1 = Vector2::new(
             // point along the velocity vector
-            self.position.x + self.size * angle_cos,
-            self.position.y + self.size * angle_sin,
+            self.position.x + self.size * angle.cos(),
+            self.position.y + self.size * angle.sin(),
         );
         let point_2 = Vector2::new(
             // point at the right of the velocity vector
-            self.position.x + self.size * angle_cos + self.size * angle_sin,
-            self.position.y + self.size * angle_sin - self.size * angle_cos,
+            self.position.x + self.size * (angle + 2.0943951023931953).cos(),
+            self.position.y + self.size * (angle + 2.0943951023931953).sin(),
         );
         let point_3 = Vector2::new(
             // point at the left of the velocity vector
-            self.position.x + self.size * angle_cos - self.size * angle_sin,
-            self.position.y + self.size * angle_sin + self.size * angle_cos,
+            self.position.x + self.size * (angle - 2.0943951023931953).cos(),
+            self.position.y + self.size * (angle - 2.0943951023931953).sin(),
         );
         let points = [point_1, point_2, point_3];
-        println!("{:?}, {:?}", self.position, points);
+        // println!("{:?}, {:?}", self.position, points);
         points
     }
-    pub fn render(&mut self, d: &mut RaylibDrawHandle, debug: bool, pointer_position: Vector2) {
-        let points = self.get_triangle_points();
-        d.draw_triangle(points[0], points[1], points[2], self.colour);
-        d.draw_circle_v(self.position, 10.0, Color::RED);
 
-        d.draw_line_v(
-            self.position,
-            (self.velocity * self.max_speed) + 100.0 + self.position,
-            Color::WHITE,
-        );
-        // d.draw_line_v(
-        // self.position,
-        // Vector2::new(1.0, 0.0) * self.max_speed + self.position,
-        // Color::GREEN,
-        // );
+    fn point_to_pointer(&mut self, pointer_position: Vector2) {
+        let vector_to_pointer = pointer_position - self.position;
+        self.velocity = self.velocity.lerp(vector_to_pointer, self.max_turn_rate);
+        self.velocity.normalize();
+    }
+
+    pub fn render(
+        &mut self,
+        d: &mut RaylibDrawHandle,
+        debug_points: bool,
+        debug_vectors: bool,
+        pointer_position: Vector2,
+    ) {
+        let points = self.get_triangle_points();
+        d.draw_triangle_lines(points[0], points[1], points[2], self.colour);
+        if debug_points {
+            d.draw_circle_v(self.position, 10.0, Color::RED);
+            d.draw_circle_v(points[0], 5.0, Color::GREEN);
+            d.draw_circle_v(points[1], 5.0, Color::GREEN);
+            d.draw_circle_v(points[2], 5.0, Color::GREEN);
+            d.draw_text(
+                &format!("1"),
+                points[0].x as i32,
+                points[0].y as i32,
+                20,
+                Color::WHITE,
+            );
+            d.draw_text(
+                &format!("2"),
+                points[1].x as i32,
+                points[1].y as i32,
+                20,
+                Color::WHITE,
+            );
+            d.draw_text(
+                &format!("3"),
+                points[2].x as i32,
+                points[2].y as i32,
+                20,
+                Color::WHITE,
+            );
+        }
+
+        if debug_vectors {
+            d.draw_line_v(
+                self.position,
+                (self.velocity * 100.0) + self.position,
+                Color::WHITE,
+            );
+            d.draw_line_v(self.position, pointer_position, Color::SKYBLUE);
+            let mut vector = self
+                .velocity
+                .lerp(pointer_position - self.position, self.max_turn_rate);
+            vector.normalize();
+            d.draw_line_v(
+                self.position,
+                self.position + vector * self.max_speed,
+                Color::RED,
+            );
+        }
     }
 }
