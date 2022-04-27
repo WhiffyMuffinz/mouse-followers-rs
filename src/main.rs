@@ -6,11 +6,11 @@ use crate::agent::Agent;
 
 const SCREEN_WIDTH: i32 = 1920;
 const SCREEN_HEIGHT: i32 = 1080;
-const AGENT_COUNT: i32 = 10;
-const MAX_SPEED: f32 = 100.0;
+const AGENT_COUNT: i32 = 100;
+const MAX_SPEED: f32 = 1000.0;
 const MAX_TURN_RATE: f32 = 1e-4;
-const AGENT_SIZE: f32 = 50.0;
-const DEBUG_VECTORS: bool = true;
+const AGENT_SIZE: f32 = 10.0;
+const DEBUG_VECTORS: bool = false;
 const DEBUG_POINTS: bool = false;
 
 fn create_agents() -> Vec<Agent> {
@@ -39,6 +39,7 @@ fn create_agents() -> Vec<Agent> {
                 color_range.sample(&mut rng),
                 255,
             ),
+            trail_locations: vec![],
         };
         out.push(a);
     }
@@ -55,6 +56,7 @@ fn create_fixed_agent() -> Vec<Agent> {
         velocity: Vector2::new(1.0, 1.0),
         size: AGENT_SIZE,
         colour: Color::BLUE,
+        trail_locations: vec![],
     };
 
     vec![a]

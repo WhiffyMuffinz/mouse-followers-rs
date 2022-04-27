@@ -10,6 +10,7 @@ pub struct Agent {
     pub max_turn_rate: f32,
     pub size: f32,
     pub colour: Color,
+    pub trail_locations: Vec<Vector2>,
 }
 
 impl Agent {
@@ -22,6 +23,10 @@ impl Agent {
     }
     fn walk(&mut self, dt: f32) {
         self.position += self.velocity * dt * self.max_speed;
+        self.trail_locations.push(self.position);
+        if self.trail_locations.len() > 100 {
+            self.trail_locations.remove(0);
+        }
     }
     fn handle_walls(&mut self) {
         if self.position.x <= 0.0 {
@@ -77,7 +82,7 @@ impl Agent {
     }
 
     pub fn render(
-        &mut self,
+        &self,
         d: &mut RaylibDrawHandle,
         debug_points: bool,
         debug_vectors: bool,
@@ -85,6 +90,10 @@ impl Agent {
     ) {
         let points = self.get_triangle_points();
         d.draw_triangle_lines(points[0], points[1], points[2], self.colour);
+
+        for p in &self.trail_locations {
+            d.draw_pixel_v(p, self.colour);
+        }
         if debug_points {
             d.draw_circle_v(self.position, 10.0, Color::RED);
             d.draw_circle_v(points[0], 5.0, Color::GREEN);
