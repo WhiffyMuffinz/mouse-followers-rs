@@ -12,6 +12,7 @@ const MAX_TURN_RATE: f32 = 1e-4;
 const AGENT_SIZE: f32 = 10.0;
 const DEBUG_VECTORS: bool = false;
 const DEBUG_POINTS: bool = false;
+const MAX_TRAIL_LENGTH: i32 = 200;
 
 fn create_agents() -> Vec<Agent> {
     let mut out: Vec<Agent> = vec![];
@@ -40,6 +41,7 @@ fn create_agents() -> Vec<Agent> {
                 255,
             ),
             trail_locations: vec![],
+            trail_length: MAX_TRAIL_LENGTH,
         };
         out.push(a);
     }
@@ -57,6 +59,7 @@ fn create_fixed_agent() -> Vec<Agent> {
         size: AGENT_SIZE,
         colour: Color::BLUE,
         trail_locations: vec![],
+        trail_length: MAX_TRAIL_LENGTH,
     };
 
     vec![a]

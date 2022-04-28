@@ -11,6 +11,7 @@ pub struct Agent {
     pub size: f32,
     pub colour: Color,
     pub trail_locations: Vec<Vector2>,
+    pub trail_length: i32,
 }
 
 impl Agent {
@@ -24,7 +25,7 @@ impl Agent {
     fn walk(&mut self, dt: f32) {
         self.position += self.velocity * dt * self.max_speed;
         self.trail_locations.push(self.position);
-        if self.trail_locations.len() > 100 {
+        if self.trail_locations.len() > self.trail_length as usize {
             self.trail_locations.remove(0);
         }
     }
@@ -57,8 +58,8 @@ impl Agent {
 
         let point_1 = Vector2::new(
             // point along the velocity vector
-            self.position.x + self.size * angle.cos(),
-            self.position.y + self.size * angle.sin(),
+            self.position.x + (self.size + self.size * 0.1) * angle.cos(),
+            self.position.y + (self.size + self.size * 0.1) * angle.sin(),
         );
         let point_2 = Vector2::new(
             // point at the right of the velocity vector
@@ -90,6 +91,7 @@ impl Agent {
     ) {
         let points = self.get_triangle_points();
         d.draw_triangle_lines(points[0], points[1], points[2], self.colour);
+        // d.draw_triangle(points[0], points[1], points[2], self.colour);
 
         for p in &self.trail_locations {
             d.draw_pixel_v(p, self.colour);
