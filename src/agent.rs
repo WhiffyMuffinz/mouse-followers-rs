@@ -1,5 +1,6 @@
 use raylib::core::math::Vector2;
 
+use rand::distributions::{Distribution, Uniform};
 use raylib::prelude::*;
 
 pub struct Agent {
@@ -30,21 +31,31 @@ impl Agent {
         }
     }
     fn handle_walls(&mut self) {
+        let mut rng = rand::thread_rng();
+        let range: Uniform<f32> = Uniform::from(-0.1..0.1);
         if self.position.x <= 0.0 {
             self.position.x = 0.0;
-            self.velocity.x *= -1.0;
+            self.velocity.x *= -1.0 + range.sample(&mut rng);
+            self.velocity.y += range.sample(&mut rng);
+            self.velocity.normalize();
         }
         if self.position.x >= self.walls[0] as f32 {
             self.position.x = self.walls[0] as f32;
-            self.velocity.x *= -1.0;
+            self.velocity.x *= -1.0 + range.sample(&mut rng);
+            self.velocity.y += range.sample(&mut rng);
+            self.velocity.normalize();
         }
         if self.position.y <= 0.0 {
             self.position.y = 0.0;
-            self.velocity.y *= -1.0;
+            self.velocity.y *= -1.0 + range.sample(&mut rng);
+            self.velocity.x += range.sample(&mut rng);
+            self.velocity.normalize();
         }
         if self.position.y >= self.walls[1] as f32 {
             self.position.y = self.walls[1] as f32;
-            self.velocity.y *= -1.0;
+            self.velocity.y *= -1.0 + range.sample(&mut rng);
+            self.velocity.x += range.sample(&mut rng);
+            self.velocity.normalize();
         }
     }
 
@@ -90,11 +101,21 @@ impl Agent {
         pointer_position: Vector2,
     ) {
         let points = self.get_triangle_points();
-        d.draw_triangle_lines(points[0], points[1], points[2], self.colour);
-        // d.draw_triangle(points[0], points[1], points[2], self.colour);
+        // d.draw_triangle_lines(points[0], points[1], points[2], self.colour);
+        d.draw_triangle(points[1], points[0], points[2], self.colour);
 
+        let mut i = self.trail_locations.len();
         for p in &self.trail_locations {
-            d.draw_pixel_v(p, self.colour);
+            d.draw_pixel_v(
+                p,
+                Color::new(
+                    self.colour.r,
+                    self.colour.g,
+                    self.colour.b,
+                    self.colour.a - i as u8,
+                ),
+            );
+            i -= 1;
         }
         if debug_points {
             d.draw_circle_v(self.position, 10.0, Color::RED);
