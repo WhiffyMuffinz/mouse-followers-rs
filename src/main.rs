@@ -76,10 +76,16 @@ fn main() {
     while !rl.window_should_close() {
         let dt = rl.get_frame_time();
         //update loop goes here
-        let pointer_pressed = rl.is_mouse_button_down(MouseButton::MOUSE_LEFT_BUTTON);
+        let left_pointer_pressed = rl.is_mouse_button_down(MouseButton::MOUSE_LEFT_BUTTON);
+        let right_pointer_pressed = rl.is_mouse_button_down(MouseButton::MOUSE_RIGHT_BUTTON);
         let pointer_position = rl.get_mouse_position();
         for a in &mut agents {
-            a.update(dt, pointer_pressed, pointer_position);
+            a.update(
+                dt,
+                left_pointer_pressed,
+                right_pointer_pressed,
+                pointer_position,
+            );
         }
 
         let mut d = rl.begin_drawing(&thread);

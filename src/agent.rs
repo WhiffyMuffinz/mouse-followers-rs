@@ -16,9 +16,17 @@ pub struct Agent {
 }
 
 impl Agent {
-    pub fn update(&mut self, dt: f32, is_pointer_pressed: bool, pointer_position: Vector2) {
-        if is_pointer_pressed {
+    pub fn update(
+        &mut self,
+        dt: f32,
+        is_left_pointer_pressed: bool,
+        is_right_pointer_pressed: bool,
+        pointer_position: Vector2,
+    ) {
+        if is_left_pointer_pressed {
             self.point_to_pointer(pointer_position);
+        } else if is_right_pointer_pressed {
+            self.point_from_pointer(pointer_position);
         }
         self.handle_walls();
         self.walk(dt);
@@ -90,6 +98,12 @@ impl Agent {
     fn point_to_pointer(&mut self, pointer_position: Vector2) {
         let vector_to_pointer = pointer_position - self.position;
         self.velocity = self.velocity.lerp(vector_to_pointer, self.max_turn_rate);
+        self.velocity.normalize();
+    }
+
+    fn point_from_pointer(&mut self, pointer_position: Vector2) {
+        let vector_to_pointer = pointer_position - self.position;
+        self.velocity = self.velocity.lerp(-vector_to_pointer, self.max_turn_rate);
         self.velocity.normalize();
     }
 
